@@ -2,8 +2,6 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 
-from urllib.parse import urlparse
-
 
 def fetch_website(url):
     if not url.startswith("http"):
@@ -22,13 +20,17 @@ def analyze_website(html, url):
     soup = BeautifulSoup(html, "html.parser")
 
     title = soup.title.string.strip() if soup.title and soup.title.string else ""
+
     meta_description_tag = soup.find("meta", attrs={"name": "description"})
-    meta_description = meta_description_tag["content"].strip() if meta_description_tag and meta_description_tag.get("content") else ""
+    meta_description = (
+        meta_description_tag["content"].strip()
+        if meta_description_tag and meta_description_tag.get("content")
+        else ""
+    )
 
     h1_tags = soup.find_all("h1")
     h2_tags = soup.find_all("h2")
     images = soup.find_all("img")
-
     images_without_alt = [img for img in images if not img.get("alt")]
 
     page_text = soup.get_text(separator=" ", strip=True)
@@ -80,7 +82,7 @@ def analyze_website(html, url):
         "h2_count": len(h2_tags),
         "image_count": len(images),
         "images_without_alt": len(images_without_alt),
-        "readability_score": round(readability_score, 2),
+        "readability_score": readability_score,
         "cta_count": len(ctas_found),
         "ctas_found": ctas_found[:10],
         "seo_score": seo_score,
@@ -121,10 +123,14 @@ def generate_suggestions(result):
     return suggestions
 
 
-st.set_page_config(page_title="SmartLanding AI", page_icon="📊")
+st.set_page_config(
+    page_title="SmartLanding AI",
+    page_icon="📊",
+    layout="wide"
+)
 
 st.title("SmartLanding AI")
-st.write("Analyze basic SEO, UX, readability, and CTA structure of a website.")
+st.write("Analyze SEO, UX, readability, CTA structure, and accessibility signals of a website.")
 
 url = st.text_input("Enter website URL", placeholder="example.com")
 
@@ -138,33 +144,94 @@ if st.button("Analyze Website"):
                 result = analyze_website(html, final_url)
                 suggestions = generate_suggestions(result)
 
-            st.subheader("Overall Score")
-            st.metric("SEO / UX Score", f"{result['seo_score']}/100")
+            st.markdown("---")
 
-            st.subheader("Website Information")
-            st.write("URL:", result["url"])
-            st.write("Title:", result["title"])
-            st.write("Meta Description:", result["meta_description"])
+            score = result["seo_score"]
 
-            st.subheader("Analysis Results")
-            st.write("Title Length:", result["title_length"])
-            st.write("Meta Description Length:", result["meta_description_length"])
-            st.write("H1 Count:", result["h1_count"])
-            st.write("H2 Count:", result["h2_count"])
-            st.write("Images:", result["image_count"])
-            st.write("Images Without Alt:", result["images_without_alt"])
-            st.write("Readability Score:", result["readability_score"])
-            st.write("CTA Count:", result["cta_count"])
+            if score >= 80:
+                score_label = "Excellent"
+            elif score >= 60:
+                score_label = "Good"
+            elif score >= 40:
+                score_label = "Needs Improvement"
+            else:
+                score_label = "Poor"
+
+            st.subheader("📊 Website Analysis Dashboard")
+
+            st.metric("Overall SEO / UX Score", f"{score}/100", score_label)
+            st.progress(score / 100)
+
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+                st.metric("Title Length", result["title_length"])
+                st.metric("H1 Count", result["h1_count"])
+
+            with col2:
+                st.metric("Meta Description Length", result["meta_description_length"])
+                st.metric("H2 Count", result["h2_count"])
+
+            with col3:
+                st.metric("Images", result["image_count"])
+                st.metric("CTA Count", result["cta_count"])
+
+            st.markdown("---")
+
+            st.subheader("🌐 Website Information")
+
+            st.write(f"**URL:** {result['url']}")
+            st.write(f"**Title:** {result['title'] if result['title'] else 'Not found'}")
+            st.write(
+                f"**Meta Description:** "
+                f"{result['meta_description'] if result['meta_description'] else 'Not found'}"
+            )
+
+            st.markdown("---")
+
+            st.subheader("🧩 Detailed Analysis")
+
+            analysis_data = {
+                "Metric": [
+                    "Title Length",
+                    "Meta Description Length",
+                    "H1 Count",
+                    "H2 Count",
+                    "Images",
+                    "Images Without Alt",
+                    "Readability Score",
+                    "CTA Count",
+                ],
+                "Value": [
+                    result["title_length"],
+                    result["meta_description_length"],
+                    result["h1_count"],
+                    result["h2_count"],
+                    result["image_count"],
+                    result["images_without_alt"],
+                    result["readability_score"],
+                    result["cta_count"],
+                ],
+            }
+
+            st.table(analysis_data)
 
             if result["ctas_found"]:
-                st.subheader("Detected CTAs")
-                for cta in result["ctas_found"]:
-                    st.write("-", cta)
+                st.markdown("---")
+                st.subheader("🎯 Detected CTAs")
 
-            st.subheader("Suggestions")
+                unique_ctas = list(dict.fromkeys(result["ctas_found"]))
+
+                for cta in unique_ctas:
+                    st.success(cta)
+
+            st.markdown("---")
+
+            st.subheader("💡 Improvement Suggestions")
+
             if suggestions:
                 for suggestion in suggestions:
-                    st.write("✅", suggestion)
+                    st.warning(suggestion)
             else:
                 st.success("No major issues found.")
 

@@ -182,12 +182,97 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("🚀 SmartLanding AI")
-st.write("Analyze SEO, UX, CTA structure, and accessibility signals of a website.")
+st.markdown(
+    """
+    <style>
+    .hero {
+        background: linear-gradient(135deg, #0f172a, #1e293b, #312e81);
+        padding: 60px 50px;
+        border-radius: 28px;
+        color: white;
+        margin-bottom: 35px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+        animation: fadeIn 1s ease-in-out;
+    }
 
-url = st.text_input("Enter website URL", placeholder="example.com")
+    .hero h1 {
+        font-size: 58px;
+        font-weight: 800;
+        margin-bottom: 18px;
+    }
 
-if st.button("Analyze Website"):
+    .hero p {
+        font-size: 20px;
+        color: #cbd5e1;
+        max-width: 850px;
+        line-height: 1.6;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.12);
+        color: #c7d2fe;
+        margin-bottom: 18px;
+        border: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .feature-pill {
+        display: inline-block;
+        background: rgba(255,255,255,0.12);
+        padding: 10px 16px;
+        border-radius: 14px;
+        margin: 6px 6px 0 0;
+        color: #e2e8f0;
+        border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .input-box {
+        background: #ffffff;
+        padding: 26px;
+        border-radius: 22px;
+        box-shadow: 0 12px 35px rgba(15,23,42,0.10);
+        margin-bottom: 30px;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    </style>
+
+    <div class="hero">
+        <div class="badge">AI-powered SEO & UX Intelligence</div>
+        <h1>SmartLanding AI</h1>
+        <p>
+            Analyze any website in seconds. Detect SEO issues, CTA structure,
+            accessibility gaps, UX signals, and generate a downloadable website report.
+        </p>
+        <div>
+            <span class="feature-pill">📊 SEO Scoring</span>
+            <span class="feature-pill">🎯 CTA Detection</span>
+            <span class="feature-pill">🧩 UX Signals</span>
+            <span class="feature-pill">🖼️ Accessibility</span>
+            <span class="feature-pill">📥 Report Export</span>
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+st.markdown('<div class="input-box">', unsafe_allow_html=True)
+
+st.subheader("Start Website Analysis")
+st.write("Enter a website URL below and generate an instant SEO / UX report.")
+
+url = st.text_input("Website URL", placeholder="example.com")
+
+analyze_clicked = st.button("Analyze Website")
+
+st.markdown("</div>", unsafe_allow_html=True)
+
+if analyze_clicked:
     if not url:
         st.warning("Please enter a website URL.")
     else:
@@ -242,7 +327,10 @@ if st.button("Analyze Website"):
             with info_col1:
                 st.write(f"**URL:** {result['url']}")
                 st.write(f"**Title:** {result['title'] if result['title'] else 'Not found'}")
-                st.write(f"**Meta Description:** {result['meta_description'] if result['meta_description'] else 'Not found'}")
+                st.write(
+                    f"**Meta Description:** "
+                    f"{result['meta_description'] if result['meta_description'] else 'Not found'}"
+                )
 
             with info_col2:
                 st.write(f"**Word Count:** {result['word_count']}")
